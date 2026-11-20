@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS watched_movies;
+DROP TABLE IF EXISTS watchlist;
+DROP TABLE IF EXISTS users;

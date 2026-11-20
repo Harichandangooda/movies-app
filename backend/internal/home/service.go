@@ -68,3 +68,42 @@ func (s *Service) GetHomeMovies(ctx context.Context) (*HomeResponse, error) {
 
 	return &result, nil
 }
+
+func (s *Service) GetMovie(
+	ctx context.Context,
+	id string,
+) (*tmdb.Movie, error) {
+
+	movie, err := s.TMDB.FetchMovie(ctx, "/movie/"+id)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"error fetching movie: %w", err,
+		)
+	}
+
+	return movie, nil
+}
+
+func (s *Service) Search(
+	ctx context.Context,
+	query string,
+	page int,
+) (*tmdb.SearchResponse, error) {
+
+	results, err := s.TMDB.Search(ctx, query, page)
+	if err != nil {
+		return nil, fmt.Errorf("error searching TMDB: %w", err)
+	}
+
+	filtered := make([]tmdb.SearchResult, 0, len(results.Results))
+
+	for _, result := range results.Results {
+		if result.MediaType == "movie" || result.MediaType == "person" {
+			filtered = append(filtered, result)
+		}
+	}
+
+	results.Results = filtered
+
+	return results, nil
+}

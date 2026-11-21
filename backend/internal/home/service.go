@@ -11,6 +11,7 @@ type HomeResponse struct {
 	Trending   []tmdb.Movie `json:"trending"`
 	Popular    []tmdb.Movie `json:"popular"`
 	NowPlaying []tmdb.Movie `json:"now_playing"`
+	TopRated   []tmdb.Movie `json:"top_rated"`
 }
 
 type Service struct {
@@ -20,7 +21,7 @@ type Service struct {
 func (s *Service) GetHomeMovies(ctx context.Context) (*HomeResponse, error) {
 	var wg sync.WaitGroup
 	var result HomeResponse
-	var trendingErr, popularErr, nowPlayingErr error
+	var trendingErr, popularErr, nowPlayingErr, topRatedErr error
 
 	wg.Add(3)
 
@@ -46,6 +47,16 @@ func (s *Service) GetHomeMovies(ctx context.Context) (*HomeResponse, error) {
 
 	go func() {
 		defer wg.Done()
+		movies, err := s.TMDB.FetchMovies(ctx, "/movie/top_rated")
+		if err != nil {
+			topRatedErr = err
+			return
+		}
+		result.TopRated = movies.Results
+	}()
+
+	go func() {
+		defer wg.Done()
 		movies, err := s.TMDB.FetchMovies(ctx, "/movie/now_playing")
 		if err != nil {
 			nowPlayingErr = err
@@ -61,6 +72,9 @@ func (s *Service) GetHomeMovies(ctx context.Context) (*HomeResponse, error) {
 	}
 	if popularErr != nil {
 		return nil, fmt.Errorf("error fetching popular movies: %w", popularErr)
+	}
+	if topRatedErr != nil {
+		return nil, fmt.Errorf("error fetching top rated movies: %w", popularErr)
 	}
 	if nowPlayingErr != nil {
 		return nil, fmt.Errorf("error fetching now playing movies: %w", nowPlayingErr)

@@ -10,8 +10,11 @@ import (
 	"movie-app/backend/internal/database"
 	"movie-app/backend/internal/handlers"
 	"movie-app/backend/internal/home"
+	"movie-app/backend/internal/movieenrichment"
 	"movie-app/backend/internal/tmdb"
 	"movie-app/backend/internal/users"
+	"movie-app/backend/internal/watchedmovies"
+	"movie-app/backend/internal/watchlist"
 )
 
 // func main() {
@@ -47,8 +50,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	tmdbAdapter := &movieenrichment.TMDBAdapter{
+		Client: client,
+	}
+
+	enrichmentService := movieenrichment.NewService(tmdbAdapter)
+
 	authService := auth.NewService(userRepository, tokenManager)
 	authHandler := auth.NewHandler(authService)
+
+	watchlistRepo := watchlist.NewRepository(db)
+	watchlistService := watchlist.NewService(watchlistRepo, enrichmentService)
+	watchlistHandler := watchlist.NewHandler(watchlistService)
+
+	watchedMoviesRepo := watchedmovies.NewRepository(db)
+	watchedMoviesService := watchedmovies.NewService(watchedMoviesRepo, enrichmentService)
+	watchedMoviesHandler := watchedmovies.NewHandler(watchedMoviesService)
 
 	service := &home.Service{
 		TMDB: client,
@@ -78,6 +95,52 @@ func main() {
 		auth.AuthMiddleware(
 			tokenManager,
 			http.HandlerFunc(authHandler.GetMe),
+		),
+	)
+	mux.Handle(
+		"POST /api/watchlist/{movie_id}",
+		auth.AuthMiddleware(
+			tokenManager,
+			http.HandlerFunc(watchlistHandler.Add),
+		),
+	)
+
+	mux.Handle(
+		"GET /api/watchlist",
+		auth.AuthMiddleware(
+			tokenManager,
+			http.HandlerFunc(watchlistHandler.List),
+		),
+	)
+
+	mux.Handle(
+		"DELETE /api/watchlist/{movie_id}",
+		auth.AuthMiddleware(
+			tokenManager,
+			http.HandlerFunc(watchlistHandler.Remove),
+		),
+	)
+	mux.Handle(
+		"POST /api/watched/{movie_id}",
+		auth.AuthMiddleware(
+			tokenManager,
+			http.HandlerFunc(watchedMoviesHandler.Add),
+		),
+	)
+
+	mux.Handle(
+		"GET /api/watched",
+		auth.AuthMiddleware(
+			tokenManager,
+			http.HandlerFunc(watchedMoviesHandler.List),
+		),
+	)
+
+	mux.Handle(
+		"DELETE /api/watched/{movie_id}",
+		auth.AuthMiddleware(
+			tokenManager,
+			http.HandlerFunc(watchedMoviesHandler.Remove),
 		),
 	)
 

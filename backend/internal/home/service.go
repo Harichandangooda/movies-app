@@ -23,7 +23,7 @@ func (s *Service) GetHomeMovies(ctx context.Context) (*HomeResponse, error) {
 	var result HomeResponse
 	var trendingErr, popularErr, nowPlayingErr, topRatedErr error
 
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -74,7 +74,7 @@ func (s *Service) GetHomeMovies(ctx context.Context) (*HomeResponse, error) {
 		return nil, fmt.Errorf("error fetching popular movies: %w", popularErr)
 	}
 	if topRatedErr != nil {
-		return nil, fmt.Errorf("error fetching top rated movies: %w", popularErr)
+		return nil, fmt.Errorf("error fetching top rated movies: %w", topRatedErr)
 	}
 	if nowPlayingErr != nil {
 		return nil, fmt.Errorf("error fetching now playing movies: %w", nowPlayingErr)

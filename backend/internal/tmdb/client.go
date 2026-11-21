@@ -13,12 +13,13 @@ import (
 const baseURL = "https://api.themoviedb.org/3"
 
 type Movie struct {
-	ID          int     `json:"id"`
-	Title       string  `json:"title"`
-	Overview    string  `json:"overview"`
-	PosterPath  string  `json:"poster_path"`
-	ReleaseDate string  `json:"release_date"`
-	VoteAverage float64 `json:"vote_average"`
+	ID           int     `json:"id"`
+	Title        string  `json:"title"`
+	Overview     string  `json:"overview"`
+	PosterPath   string  `json:"poster_path"`
+	BackdropPath string  `json:"backdrop_path"`
+	ReleaseDate  string  `json:"release_date"`
+	VoteAverage  float64 `json:"vote_average"`
 }
 
 type MovieResponse struct {
